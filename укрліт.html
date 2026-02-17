@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Ігри про Шевченка</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#1e1e2f,#2d2d44);
+  color:white;
+  transition: background .4s;
+}
+
+.container{
+  max-width:820px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:#ffffff12;
+  backdrop-filter: blur(8px);
+  border-radius:14px;
+  padding:20px;
+  margin:20px 0;
+  box-shadow:0 10px 30px #00000040;
+}
+
+h1,h2{text-align:center;}
+
+button{
+  display:block;
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  background:#6c7cff;
+  color:white;
+  cursor:pointer;
+  transition:.25s;
+}
+
+button:hover{
+  transform:translateY(-2px);
+  background:#8895ff;
+}
+
+button:disabled{
+  opacity:.6;
+  transform:none;
+  cursor:default;
+}
+
+.menuBtn{background:#00b894;}
+.menuBtn:hover{background:#00d6a6;}
+
+.progress{
+  text-align:center;
+  opacity:.85;
+  margin-top:10px;
+}
+
+.result{
+  text-align:center;
+  font-size:20px;
+  margin-top:15px;
+  font-weight:bold;
+}
+
+.flashGood{ background:#1f5f3a !important; }
+.flashBad{ background:#6a1f2a !important; }
+
+.hidden{display:none;}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🎓 Міні-ігри про Шевченка</h1>
+
+<div class="card">
+<h2>Меню</h2>
+<button class="menuBtn" onclick="startGame(game1,'Складна вікторина')">🎯 Вікторина</button>
+<button class="menuBtn" onclick="startGame(game2,'Життєві рішення')">🧠 Як би ти вчинив</button>
+</div>
+
+<div id="gameCard" class="card hidden">
+<h2 id="title"></h2>
+<p id="question"></p>
+<div id="answers"></div>
+<div class="progress" id="progress"></div>
+<div class="result" id="result"></div>
+<button onclick="backMenu()" class="menuBtn">⬅ Меню</button>
+</div>
+
+</div>
+
+<script>
+/* ---------- ПИТАННЯ ---------- */
+
+const game1 = [
+["У якому році народився Шевченко?","1814","1808","1820",0],
+["У якому віці його викупили?","24","18","30",0],
+["Хто допоміг викупити?","Жуковський","Лермонтов","Тургенєв",0],
+["Рік першого Кобзаря?","1840","1850","1838",0],
+["Яка академія мистецтв?","Петербурзька","Київська","Паризька",0],
+["Основний жанр живопису?","Портрет","Ікона","Абстракція",0],
+["Заслання було де?","Казахстан","Урал","Грузія",0],
+["Що було заборонено?","Писати й малювати","Листи","Подорожі",0],
+["Літературний стиль?","Романтизм","Модерн","Бароко",0],
+["Художній псевдонім?","Дармограй","Степовий","Кобзаренко",0],
+["Де перепохований?","Канів","Львів","Харків",0],
+["Був у таємному братстві?","Так","Ні","Невідомо",0]
+];
+
+const game2 = [
+["Викупили з неволі — перший крок?","Навчання","Бізнес","Переїзд",0],
+["Твори заборонені","Пишу тайно","Кидаю","Міняю тему",0],
+["Вступ важкий","Йду до кінця","Відкладу","Здамся",0],
+["Тиск влади","Не зрікаюсь","Мовчу","Погоджуюсь",0],
+["Нема умов","Творю будь-де","Чекаю","Кидаю",0],
+["Жорстка критика","Покращую","Злюсь","Зупиняюсь",0],
+["Друзі ризикують","Приймаю","Ховаюсь","Відмовляюсь",0],
+["Заслання","Веду записи","Пасивний","Здаюсь",0],
+["Несправедливість","Пишу правду","Мовчу","Ігнорую",0],
+["2 таланти","Розвиваю","Легший","Один кидаю",0],
+["Не друкують","Шукаю шлях","Чекаю","Кінець",0],
+["Повернувся","Працюю далі","Тихо живу","Відмова",0]
+];
+
+/* ---------- ЛОГІКА ---------- */
+
+let data, qi, score, locked=false;
+
+function shuffleAnswers(q){
+  return [
+    {text:q[1], ok:q[4]===0},
+    {text:q[2], ok:q[4]===1},
+    {text:q[3], ok:q[4]===2}
+  ].sort(()=>Math.random()-0.5);
+}
+
+function startGame(arr,titleText){
+  data = arr;
+  qi = 0;
+  score = 0;
+  result.innerText="";
+  gameCard.classList.remove("hidden");
+  title.innerText = titleText;
+  nextQ();
+}
+
+function flash(ok){
+  document.body.classList.add(ok ? "flashGood":"flashBad");
+  setTimeout(()=>{
+    document.body.classList.remove("flashGood","flashBad");
+  },700);
+}
+
+function nextQ(){
+  locked=false;
+
+  if(qi>=data.length){
+    let grade = Math.round(score/data.length*12);
+    question.innerText="Гру завершено";
+    answers.innerHTML="";
+    progress.innerText="";
+    result.innerText=`Результат: ${score}/12  |  Оцінка: ${grade}/12`;
+    return;
+  }
+
+  let q = data[qi];
+  question.innerText = q[0];
+  answers.innerHTML="";
+
+  let shuffled = shuffleAnswers(q);
+
+  shuffled.forEach(opt=>{
+    let b=document.createElement("button");
+    b.innerText = opt.text;
+    b.onclick=()=>{
+      if(locked) return;
+      locked=true;
+
+      if(opt.ok) score++;
+      flash(opt.ok);
+
+      [...answers.children].forEach(btn=>btn.disabled=true);
+
+      setTimeout(()=>{
+        qi++;
+        nextQ();
+      },800);
+    };
+    answers.appendChild(b);
+  });
+
+  progress.innerText = `Питання ${qi+1} з ${data.length}`;
+}
+
+function backMenu(){
+  gameCard.classList.add("hidden");
+}
+</script>
+
+</body>
+</html>
